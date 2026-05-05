@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { adminShopsApi } from '@/api/admin/shops'
 import { useUiStore } from '@/stores/ui.store'
 import AppSpinner from '@/components/common/AppSpinner.vue'
-import type { CreateUpdateShopDto, BusinessHours, NewsItem } from '@/types'
+import type { CreateUpdateShopDto, BusinessHours } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -82,10 +82,10 @@ function toggleDay(key: keyof BusinessHours) {
 }
 
 function addNews() {
-  form.value.newsItems.push({ title: '', content: '', startDate: '', endDate: '' })
+  form.value.newsItems!.push({ title: '', content: '', startDate: '', endDate: '' })
 }
 
-function removeNews(i: number) { form.value.newsItems.splice(i, 1) }
+function removeNews(i: number) { form.value.newsItems!.splice(i, 1) }
 
 const activeTab = ref<'basic' | 'hours' | 'news'>('basic')
 </script>
@@ -224,7 +224,7 @@ const activeTab = ref<'basic' | 'hours' | 'news'>('basic')
       <!-- News -->
       <div v-if="activeTab === 'news'" class="space-y-4 max-w-2xl">
         <button type="button" class="btn-ghost text-sm" @click="addNews">+ 新增公告</button>
-        <div v-for="(news, i) in form.newsItems" :key="i" class="card p-4 space-y-3 relative">
+        <div v-for="(news, i) in (form.newsItems ?? [])" :key="i" class="card p-4 space-y-3 relative">
           <button type="button" class="absolute top-3 right-3 text-site-gray-lighter hover:text-red text-xs" @click="removeNews(i)">✕</button>
           <input v-model="news.title" class="input-field" placeholder="公告標題" />
           <textarea v-model="news.content" class="input-field resize-none h-16" placeholder="公告內容" />
@@ -239,7 +239,7 @@ const activeTab = ref<'basic' | 'hours' | 'news'>('basic')
             </div>
           </div>
         </div>
-        <p v-if="!form.newsItems.length" class="text-site-gray-lighter text-sm">尚無公告</p>
+        <p v-if="!form.newsItems?.length" class="text-site-gray-lighter text-sm">尚無公告</p>
       </div>
 
       <!-- Actions -->
