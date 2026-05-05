@@ -38,7 +38,10 @@ const { mutate: save, isPending: saving } = useMutation({
 
 <template>
   <div class="max-w-lg">
-    <h1 class="page-title mb-6">排名設定</h1>
+    <div class="mb-6">
+      <p class="text-[10px] font-mono text-site-gray-lighter tracking-widest uppercase">Ranking Settings</p>
+      <h1 class="page-title">排名設定</h1>
+    </div>
 
     <AppSpinner v-if="isLoading" />
 

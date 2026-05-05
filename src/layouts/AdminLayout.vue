@@ -104,9 +104,7 @@ async function handleLogout() {
         >
           ☰
         </button>
-        <h1 class="font-bebas text-xl tracking-wider text-cream flex-1">
-          {{ NAV_ITEMS.find(n => route.path.startsWith(n.to))?.label ?? '管理後台' }}
-        </h1>
+        <span class="flex-1" />
         <span class="text-xs font-mono text-site-gray-lighter">{{ user?.email }}</span>
       </header>
 

@@ -28,7 +28,10 @@ function confirmDelete(id: string) {
 
 <template>
   <div>
-    <h1 class="page-title mb-6">評論管理</h1>
+    <div class="mb-6">
+      <p class="text-[10px] font-mono text-site-gray-lighter tracking-widest uppercase">Review Management</p>
+      <h1 class="page-title">評論管理</h1>
+    </div>
 
     <AppSpinner v-if="isLoading" />
 

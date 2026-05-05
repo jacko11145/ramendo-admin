@@ -33,7 +33,10 @@ function confirmDelete(guid: string, name: string) {
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="page-title">店家管理</h1>
+      <div>
+        <p class="text-[10px] font-mono text-site-gray-lighter tracking-widest uppercase">Shop Management</p>
+        <h1 class="page-title">店家管理</h1>
+      </div>
       <RouterLink to="/shops/create" class="btn-primary">+ 新增店家</RouterLink>
     </div>
 

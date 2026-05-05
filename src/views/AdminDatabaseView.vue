@@ -15,7 +15,10 @@ const total = () => data.value?.reduce((acc, t) => acc + t.rowCount, 0) ?? 0
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="page-title">資料庫統計</h1>
+      <div>
+        <p class="text-[10px] font-mono text-site-gray-lighter tracking-widest uppercase">Database Stats</p>
+        <h1 class="page-title">資料庫統計</h1>
+      </div>
       <button class="btn-ghost text-sm" @click="refetch()">重新整理</button>
     </div>
 

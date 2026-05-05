@@ -53,7 +53,10 @@ function copyCode(code: string) {
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="page-title">邀請碼管理</h1>
+      <div>
+        <p class="text-[10px] font-mono text-site-gray-lighter tracking-widest uppercase">Invitation Codes</p>
+        <h1 class="page-title">邀請碼管理</h1>
+      </div>
       <button class="btn-primary" @click="showCreate = true">+ 產生邀請碼</button>
     </div>
 

@@ -94,7 +94,10 @@ const activeTab = ref<'basic' | 'hours' | 'news'>('basic')
   <div>
     <div class="flex items-center gap-4 mb-6">
       <button class="btn-ghost text-sm" @click="router.back()">← 返回</button>
-      <h1 class="page-title">{{ isEdit ? '編輯店家' : '新增店家' }}</h1>
+      <div>
+        <p class="text-[10px] font-mono text-site-gray-lighter tracking-widest uppercase">{{ isEdit ? 'Edit Shop' : 'New Shop' }}</p>
+        <h1 class="page-title">{{ isEdit ? '編輯店家' : '新增店家' }}</h1>
+      </div>
     </div>
 
     <AppSpinner v-if="loading" />

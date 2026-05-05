@@ -48,7 +48,10 @@ const STATUS_LABELS: Record<string, string> = { Pending: '待審核', Approved: 
 
 <template>
   <div>
-    <h1 class="page-title mb-6">提案審核</h1>
+    <div class="mb-6">
+      <p class="text-[10px] font-mono text-site-gray-lighter tracking-widest uppercase">Submissions</p>
+      <h1 class="page-title">提案審核</h1>
+    </div>
 
     <div class="flex gap-2 mb-4">
       <button

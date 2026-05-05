@@ -60,7 +60,10 @@ const ROLE_COLORS: Record<UserRole, string> = {
 
 <template>
   <div>
-    <h1 class="page-title mb-6">用戶管理</h1>
+    <div class="mb-6">
+      <p class="text-[10px] font-mono text-site-gray-lighter tracking-widest uppercase">User Management</p>
+      <h1 class="page-title">用戶管理</h1>
+    </div>
 
     <!-- Filters -->
     <div class="flex gap-3 mb-4 flex-wrap">

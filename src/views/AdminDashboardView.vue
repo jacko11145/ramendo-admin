@@ -12,7 +12,10 @@ const { data, isLoading } = useQuery({
 
 <template>
   <div>
-    <h1 class="page-title mb-6">儀表板</h1>
+    <div class="mb-6">
+      <p class="text-[10px] font-mono text-site-gray-lighter tracking-widest uppercase">Dashboard</p>
+      <h1 class="page-title">儀表板</h1>
+    </div>
 
     <AppSpinner v-if="isLoading" />
 
