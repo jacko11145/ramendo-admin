@@ -23,11 +23,11 @@ const DAYS: { key: keyof BusinessHours; label: string }[] = [
 const SHOP_TYPES = ['豚骨', '醬油', '鹽味', '味噌', '沾麵', '冷麵', '台式', '創意']
 const CITIES = ['台北市', '新北市', '桃園市', '台中市', '台南市', '高雄市', '新竹市', '基隆市']
 
-const form = ref<CreateUpdateShopDto & { newsItems: NewsItem[] }>({
-  name: '', city: '', district: '', address: '',
-  phone: '', website: '', instagram: '', facebook: '',
+const form = ref<CreateUpdateShopDto>({
+  name: '', city: '', district: '', detailAddress: '',
+  phone: '', website: '', instagram: '', facebookPageId: '',
   types: [], description: '', googleRating: undefined,
-  isVerified: false,
+  isVerified: false, isActive: true,
   businessHours: {
     monday: null, tuesday: null, wednesday: null, thursday: null,
     friday: null, saturday: null, sunday: null,
@@ -42,12 +42,12 @@ onMounted(async () => {
     const res = await adminShopsApi.getByGuid(route.params.guid as string)
     const shop = res.data.data!
     form.value = {
-      name: shop.name, city: shop.city, district: shop.district, address: shop.address,
+      name: shop.name, city: shop.city, district: shop.district, detailAddress: shop.detailAddress,
       phone: shop.phone ?? '', website: shop.website ?? '',
-      instagram: shop.instagram ?? '', facebook: shop.facebook ?? '',
+      instagram: shop.instagram ?? '', facebookPageId: shop.facebookPageId ?? '',
       types: [...shop.types], description: shop.description ?? '',
-      googleRating: shop.googleRating ?? undefined,
-      isVerified: shop.isVerified,
+      googleRating: shop.googleRating || undefined,
+      isVerified: shop.isVerified, isActive: shop.isActive,
       businessHours: shop.businessHours ?? { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null, saturday: null, sunday: null },
       newsItems: [...shop.newsItems],
     }
@@ -78,7 +78,7 @@ function toggleType(t: string) {
 
 function toggleDay(key: keyof BusinessHours) {
   const bh = form.value.businessHours!
-  bh[key] = bh[key] ? null : { open: '11:00', close: '21:00' }
+  bh[key] = bh[key] ? null : { isOpen: true, isSplit: false, open: '11:00', close: '21:00' }
 }
 
 function addNews() {
@@ -134,7 +134,7 @@ const activeTab = ref<'basic' | 'hours' | 'news'>('basic')
           </div>
           <div class="col-span-2">
             <label class="block text-xs text-site-gray-lighter mb-1">地址 *</label>
-            <input v-model="form.address" class="input-field" required />
+            <input v-model="form.detailAddress" class="input-field" required />
           </div>
           <div>
             <label class="block text-xs text-site-gray-lighter mb-1">電話</label>
@@ -150,7 +150,7 @@ const activeTab = ref<'basic' | 'hours' | 'news'>('basic')
           </div>
           <div>
             <label class="block text-xs text-site-gray-lighter mb-1">Facebook</label>
-            <input v-model="form.facebook" class="input-field" />
+            <input v-model="form.facebookPageId" class="input-field" />
           </div>
           <div class="col-span-2">
             <label class="block text-xs text-site-gray-lighter mb-1">網站</label>
@@ -179,11 +179,17 @@ const activeTab = ref<'basic' | 'hours' | 'news'>('basic')
           </div>
         </div>
 
-        <!-- Verified -->
-        <label class="flex items-center gap-3 cursor-pointer">
-          <input v-model="form.isVerified" type="checkbox" class="w-4 h-4 accent-red" />
-          <span class="text-sm text-cream">已認證店家</span>
-        </label>
+        <!-- Status -->
+        <div class="flex gap-6">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input v-model="form.isVerified" type="checkbox" class="w-4 h-4 accent-red" />
+            <span class="text-sm text-cream">已認證店家</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input v-model="form.isActive" type="checkbox" class="w-4 h-4 accent-red" />
+            <span class="text-sm text-cream">上架中</span>
+          </label>
+        </div>
       </div>
 
       <!-- Business Hours -->

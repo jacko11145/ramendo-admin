@@ -6,6 +6,7 @@ import AppSpinner from '@/components/common/AppSpinner.vue'
 const { data, isLoading, refetch } = useQuery({
   queryKey: ['admin-database-stats'],
   queryFn: () => adminSettingsApi.getDatabaseStats().then((r) => r.data.data),
+  refetchInterval: 30_000,
 })
 
 const total = () => data.value?.reduce((acc, t) => acc + t.rowCount, 0) ?? 0

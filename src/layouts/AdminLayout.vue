@@ -35,13 +35,18 @@ async function handleLogout() {
   <div class="flex h-screen bg-ink overflow-hidden">
     <!-- Sidebar -->
     <aside
-      class="bg-sidebar border-r border-site-gray flex flex-col transition-all duration-200 shrink-0"
+      class="bg-sidebar border-r border-[rgba(217,43,43,0.3)] flex flex-col transition-all duration-200 shrink-0"
       :class="sidebarOpen ? 'w-56' : 'w-14'"
     >
       <!-- Logo -->
-      <div class="h-14 flex items-center px-4 border-b border-site-gray">
-        <span class="font-bebas text-2xl tracking-widest text-red">拉</span>
-        <span v-if="sidebarOpen" class="font-bebas text-2xl tracking-widest text-cream ml-0.5">麵道</span>
+      <div class="h-14 flex items-center px-4 border-b border-[rgba(217,43,43,0.3)]">
+        <div class="flex flex-col justify-center">
+          <div class="flex items-baseline">
+            <span class="font-bebas text-2xl tracking-widest text-red leading-none">拉</span>
+            <span v-if="sidebarOpen" class="font-bebas text-2xl tracking-widest text-cream leading-none">麵道</span>
+          </div>
+          <p v-if="sidebarOpen" class="text-[10px] text-site-gray-lighter tracking-widest leading-none mt-0.5">管理系統</p>
+        </div>
       </div>
 
       <!-- Nav -->
@@ -61,7 +66,7 @@ async function handleLogout() {
       </nav>
 
       <!-- User -->
-      <div class="border-t border-site-gray p-3">
+      <div class="border-t border-[rgba(217,43,43,0.3)] p-3 space-y-2">
         <div class="flex items-center gap-2">
           <div class="w-7 h-7 rounded-full bg-red flex items-center justify-center text-xs font-bebas shrink-0">
             {{ user?.name?.charAt(0) ?? 'A' }}
@@ -70,22 +75,29 @@ async function handleLogout() {
             <p class="text-xs text-cream truncate">{{ user?.name }}</p>
             <p class="text-[10px] text-site-gray-lighter font-mono">Admin</p>
           </div>
-          <button
-            v-if="sidebarOpen"
-            class="text-site-gray-lighter hover:text-red transition-colors text-xs"
-            title="登出"
-            @click="handleLogout"
-          >
-            ⏏
-          </button>
         </div>
+        <button
+          v-if="sidebarOpen"
+          class="w-full btn-ghost text-xs py-1.5"
+          @click="handleLogout"
+        >
+          登出
+        </button>
+        <button
+          v-else
+          class="w-full flex justify-center items-center text-site-gray-lighter hover:text-red transition-colors py-1.5"
+          title="登出"
+          @click="handleLogout"
+        >
+          <span class="text-base">⏏</span>
+        </button>
       </div>
     </aside>
 
     <!-- Main -->
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Top Bar -->
-      <header class="h-14 bg-ink-light border-b border-site-gray flex items-center px-4 gap-4 shrink-0">
+      <header class="h-14 bg-ink-light border-b border-[rgba(217,43,43,0.3)] flex items-center px-4 gap-4 shrink-0">
         <button
           class="text-site-gray-lighter hover:text-cream transition-colors"
           @click="sidebarOpen = !sidebarOpen"

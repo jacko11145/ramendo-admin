@@ -65,7 +65,12 @@ export interface BusinessHours {
   sunday: DayHours | null
 }
 
-export interface DayHours { open: string; close: string }
+export interface DayHours {
+  isOpen: boolean
+  isSplit: boolean
+  open: string | null
+  close: string | null
+}
 
 export interface NewsItem {
   title: string
@@ -97,28 +102,27 @@ export interface MenuItem {
 }
 
 export interface AdminShop {
-  guid: string
+  id: string
   name: string
   city: string
   district: string
-  address: string
+  detailAddress: string
   phone: string | null
   website: string | null
   instagram: string | null
-  facebook: string | null
+  facebookPageId: string | null
   coverImage: string | null
   images: string[]
   types: string[]
   isVerified: boolean
   isActive: boolean
-  googleRating: number | null
-  userRating: number | null
+  googleRating: number
+  rating: number
   reviewCount: number
   description: string | null
   businessHours: BusinessHours | null
   newsItems: NewsItem[]
   menuItems: MenuItem[]
-  ownerId: string | null
   createdAt: string
 }
 
@@ -126,15 +130,16 @@ export interface CreateUpdateShopDto {
   name: string
   city: string
   district: string
-  address: string
+  detailAddress: string
   phone?: string
   website?: string
   instagram?: string
-  facebook?: string
+  facebookPageId?: string
   types: string[]
   description?: string
   googleRating?: number
   isVerified: boolean
+  isActive: boolean
   businessHours?: BusinessHours
   newsItems?: NewsItem[]
 }
@@ -193,9 +198,16 @@ export interface PermissionSettings {
 }
 
 export interface RankingSettings {
-  userRatingWeight: number
-  googleRatingWeight: number
-  reviewCountWeight: number
+  allowUser: boolean
+  allowGoogle: boolean
+  allowCombined: boolean
+  defaultType: string
+  userWeight: number
+  googleWeight: number
+  displayLimit: number
+  minReviews: number
+  minRating: number
+  mustBeVerified: boolean
 }
 
 // ─── Admin Dashboard ──────────────────────────────────────────────────────────

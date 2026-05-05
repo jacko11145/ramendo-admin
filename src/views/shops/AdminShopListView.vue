@@ -58,7 +58,7 @@ function confirmDelete(guid: string, name: string) {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="shop in data?.items" :key="shop.guid" class="hover:bg-ink/50 transition-colors">
+            <tr v-for="shop in data?.items" :key="shop.id" class="hover:bg-ink/50 transition-colors">
               <td class="table-cell">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded bg-site-gray overflow-hidden shrink-0">
@@ -71,7 +71,7 @@ function confirmDelete(guid: string, name: string) {
                 </div>
               </td>
               <td class="table-cell text-site-gray-lighter">{{ shop.city }} {{ shop.district }}</td>
-              <td class="table-cell text-center font-mono text-sm">{{ shop.userRating?.toFixed(1) ?? '—' }}</td>
+              <td class="table-cell text-center font-mono text-sm">{{ shop.rating?.toFixed(1) ?? '—' }}</td>
               <td class="table-cell text-center text-site-gray-lighter">{{ shop.reviewCount }}</td>
               <td class="table-cell text-center">
                 <span class="badge" :class="shop.isVerified ? 'bg-green-900/50 text-green-300' : 'bg-site-gray text-cream-dark'">
@@ -80,8 +80,8 @@ function confirmDelete(guid: string, name: string) {
               </td>
               <td class="table-cell text-right">
                 <div class="flex justify-end gap-2">
-                  <RouterLink :to="`/shops/${shop.guid}/edit`" class="btn-ghost text-xs px-2 py-1">編輯</RouterLink>
-                  <button class="btn-danger text-xs px-2 py-1" :disabled="deleting" @click="confirmDelete(shop.guid, shop.name)">刪除</button>
+                  <RouterLink :to="`/shops/${shop.id}/edit`" class="btn-ghost text-xs px-2 py-1">編輯</RouterLink>
+                  <button class="btn-danger text-xs px-2 py-1" :disabled="deleting" @click="confirmDelete(shop.id, shop.name)">刪除</button>
                 </div>
               </td>
             </tr>
