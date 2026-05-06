@@ -20,10 +20,24 @@ export const adminShopsApi = {
   uploadCover: (guid: string, file: File) => {
     const form = new FormData()
     form.append('file', file)
-    return apiClient.post<ApiResponse<{ url: string }>>(`/api/admin/shops/${guid}/cover-image`, form, {
+    return apiClient.post<ApiResponse<string>>(`/api/admin/shops/${guid}/cover-image`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
+
+  deleteCover: (guid: string) =>
+    apiClient.delete<ApiResponse<null>>(`/api/admin/shops/${guid}/cover-image`),
+
+  uploadGallery: (guid: string, files: File[]) => {
+    const form = new FormData()
+    files.forEach((f) => form.append('files', f))
+    return apiClient.post<ApiResponse<string[]>>(`/api/admin/shops/${guid}/gallery`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  deleteGalleryImage: (guid: string, url: string) =>
+    apiClient.delete<ApiResponse<string[]>>(`/api/admin/shops/${guid}/gallery`, { data: { url } }),
 
   addMenuItem: (guid: string, data: Omit<MenuItem, 'id' | 'optionGroups'>) =>
     apiClient.post<ApiResponse<string>>(`/api/admin/shops/${guid}/menu`, data),

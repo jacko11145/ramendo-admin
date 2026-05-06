@@ -6,6 +6,81 @@ import { useUiStore } from '@/stores/ui.store'
 import AppSpinner from '@/components/common/AppSpinner.vue'
 import type { CreateUpdateShopDto, BusinessHours } from '@/types'
 
+// ─── Image state ─────────────────────────────────────────────────────────────
+const shopGuid = computed(() => route.params.guid as string)
+const currentCover = ref<string | null>(null)
+const currentGallery = ref<string[]>([])
+const coverFile = ref<File | null>(null)
+const coverPreview = ref<string | null>(null)
+const galleryFiles = ref<File[]>([])
+const galleryPreviews = ref<string[]>([])
+const uploadingCover = ref(false)
+const uploadingGallery = ref(false)
+
+function onCoverChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  coverFile.value = file
+  coverPreview.value = URL.createObjectURL(file)
+}
+
+function onGalleryChange(e: Event) {
+  const files = Array.from((e.target as HTMLInputElement).files ?? [])
+  galleryFiles.value = files
+  galleryPreviews.value = files.map((f) => URL.createObjectURL(f))
+}
+
+async function uploadCover() {
+  if (!coverFile.value || !shopGuid.value) return
+  uploadingCover.value = true
+  try {
+    const res = await adminShopsApi.uploadCover(shopGuid.value, coverFile.value)
+    currentCover.value = res.data.data ?? null
+    coverFile.value = null
+    coverPreview.value = null
+    ui.toast.success('封面圖片已上傳')
+  } catch {
+    ui.toast.error('上傳失敗')
+  } finally { uploadingCover.value = false }
+}
+
+async function removeCover() {
+  if (!shopGuid.value) return
+  uploadingCover.value = true
+  try {
+    await adminShopsApi.deleteCover(shopGuid.value)
+    currentCover.value = null
+    ui.toast.success('封面圖片已刪除')
+  } catch {
+    ui.toast.error('刪除失敗')
+  } finally { uploadingCover.value = false }
+}
+
+async function uploadGallery() {
+  if (!galleryFiles.value.length || !shopGuid.value) return
+  uploadingGallery.value = true
+  try {
+    const res = await adminShopsApi.uploadGallery(shopGuid.value, galleryFiles.value)
+    currentGallery.value = res.data.data ?? []
+    galleryFiles.value = []
+    galleryPreviews.value = []
+    ui.toast.success('圖片已上傳')
+  } catch {
+    ui.toast.error('上傳失敗')
+  } finally { uploadingGallery.value = false }
+}
+
+async function removeGalleryImage(url: string) {
+  if (!shopGuid.value) return
+  try {
+    const res = await adminShopsApi.deleteGalleryImage(shopGuid.value, url)
+    currentGallery.value = res.data.data ?? []
+    ui.toast.success('圖片已刪除')
+  } catch {
+    ui.toast.error('刪除失敗')
+  }
+}
+
 const route = useRoute()
 const router = useRouter()
 const ui = useUiStore()
@@ -51,6 +126,8 @@ onMounted(async () => {
       businessHours: shop.businessHours ?? { monday: null, tuesday: null, wednesday: null, thursday: null, friday: null, saturday: null, sunday: null },
       newsItems: [...shop.newsItems],
     }
+    currentCover.value = shop.coverImage
+    currentGallery.value = [...shop.images]
   } finally { loading.value = false }
 })
 
@@ -87,7 +164,7 @@ function addNews() {
 
 function removeNews(i: number) { form.value.newsItems!.splice(i, 1) }
 
-const activeTab = ref<'basic' | 'hours' | 'news'>('basic')
+const activeTab = ref<'basic' | 'hours' | 'news' | 'images'>('basic')
 </script>
 
 <template>
@@ -106,12 +183,12 @@ const activeTab = ref<'basic' | 'hours' | 'news'>('basic')
       <!-- Tab Nav -->
       <div class="flex gap-1 border-b border-site-gray mb-6">
         <button
-          v-for="tab in [{ key: 'basic', label: '基本資訊' }, { key: 'hours', label: '營業時間' }, { key: 'news', label: '公告' }]"
+          v-for="tab in [{ key: 'basic', label: '基本資訊' }, { key: 'hours', label: '營業時間' }, { key: 'news', label: '公告' }, { key: 'images', label: '圖片' }]"
           :key="tab.key"
           type="button"
           class="font-bebas text-base tracking-wider px-5 py-2 border-b-2 transition-colors"
           :class="activeTab === tab.key ? 'border-red text-cream' : 'border-transparent text-site-gray-lighter hover:text-cream'"
-          @click="activeTab = tab.key as 'basic' | 'hours' | 'news'"
+          @click="activeTab = tab.key as 'basic' | 'hours' | 'news' | 'images'"
         >
           {{ tab.label }}
         </button>
@@ -243,6 +320,106 @@ const activeTab = ref<'basic' | 'hours' | 'news'>('basic')
           </div>
         </div>
         <p v-if="!form.newsItems?.length" class="text-site-gray-lighter text-sm">尚無公告</p>
+      </div>
+
+      <!-- Images Tab -->
+      <div v-if="activeTab === 'images'" class="space-y-8 max-w-2xl">
+        <div v-if="!isEdit" class="text-site-gray-lighter text-sm">請先儲存店家後，再上傳圖片。</div>
+        <template v-else>
+          <!-- Cover Image -->
+          <div>
+            <h3 class="font-bebas text-lg tracking-wider text-cream mb-3">封面圖片</h3>
+            <div class="flex flex-col gap-3">
+              <div class="relative w-full aspect-video bg-ink rounded-lg overflow-hidden border border-site-gray">
+                <img
+                  v-if="coverPreview || currentCover"
+                  :src="coverPreview ?? currentCover!"
+                  class="w-full h-full object-cover"
+                />
+                <div v-else class="w-full h-full flex items-center justify-center text-site-gray-lighter text-sm">
+                  尚無封面圖片
+                </div>
+                <span v-if="coverPreview" class="absolute top-2 left-2 text-xs bg-amber-700 text-white px-2 py-0.5 rounded">待上傳</span>
+              </div>
+              <div class="flex gap-2 flex-wrap">
+                <label class="btn-outline text-sm cursor-pointer">
+                  選擇圖片
+                  <input type="file" accept="image/*" class="hidden" @change="onCoverChange" />
+                </label>
+                <button
+                  v-if="coverFile"
+                  type="button"
+                  class="btn-primary text-sm"
+                  :disabled="uploadingCover"
+                  @click="uploadCover"
+                >
+                  {{ uploadingCover ? '上傳中...' : '確認上傳' }}
+                </button>
+                <button
+                  v-if="currentCover && !coverFile"
+                  type="button"
+                  class="btn-danger text-sm"
+                  :disabled="uploadingCover"
+                  @click="removeCover"
+                >
+                  刪除封面
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gallery Images -->
+          <div>
+            <h3 class="font-bebas text-lg tracking-wider text-cream mb-3">相簿圖片</h3>
+
+            <!-- Existing gallery -->
+            <div v-if="currentGallery.length" class="grid grid-cols-3 gap-2 mb-4">
+              <div
+                v-for="url in currentGallery"
+                :key="url"
+                class="relative aspect-square bg-ink rounded overflow-hidden group"
+              >
+                <img :src="url" class="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  class="absolute inset-0 bg-ink/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red text-sm font-bebas tracking-wider"
+                  @click="removeGalleryImage(url)"
+                >
+                  刪除
+                </button>
+              </div>
+            </div>
+            <p v-else class="text-site-gray-lighter text-sm mb-4">尚無相簿圖片</p>
+
+            <!-- New uploads preview -->
+            <div v-if="galleryPreviews.length" class="grid grid-cols-3 gap-2 mb-3">
+              <div
+                v-for="(src, i) in galleryPreviews"
+                :key="i"
+                class="relative aspect-square bg-ink rounded overflow-hidden"
+              >
+                <img :src="src" class="w-full h-full object-cover" />
+                <span class="absolute top-1 left-1 text-xs bg-amber-700 text-white px-1.5 py-0.5 rounded">待上傳</span>
+              </div>
+            </div>
+
+            <div class="flex gap-2 flex-wrap">
+              <label class="btn-outline text-sm cursor-pointer">
+                選擇多張圖片
+                <input type="file" accept="image/*" multiple class="hidden" @change="onGalleryChange" />
+              </label>
+              <button
+                v-if="galleryFiles.length"
+                type="button"
+                class="btn-primary text-sm"
+                :disabled="uploadingGallery"
+                @click="uploadGallery"
+              >
+                {{ uploadingGallery ? '上傳中...' : `上傳 ${galleryFiles.length} 張` }}
+              </button>
+            </div>
+          </div>
+        </template>
       </div>
 
       <!-- Actions -->
