@@ -348,8 +348,14 @@ const activeTab = ref<'basic' | 'hours' | 'news' | 'images' | 'menu'>('basic')
         <button type="button" class="btn-ghost text-sm" @click="addNews">+ 新增公告</button>
         <div v-for="(news, i) in (form.newsItems ?? [])" :key="i" class="card p-4 space-y-3 relative">
           <button type="button" class="absolute top-3 right-3 text-site-gray-lighter hover:text-red text-xs" @click="removeNews(i)">✕</button>
-          <input v-model="news.title" class="input-field" placeholder="公告標題" />
-          <textarea v-model="news.content" class="input-field resize-none h-16" placeholder="公告內容" />
+          <div>
+            <label class="block text-xs text-site-gray-lighter mb-1">公告標題</label>
+            <input v-model="news.title" class="input-field" placeholder="例：春節休假公告" />
+          </div>
+          <div>
+            <label class="block text-xs text-site-gray-lighter mb-1">公告內容</label>
+            <textarea v-model="news.content" class="input-field resize-none h-16" placeholder="例：本店 2/8–2/12 春節休假，2/13 恢復正常營業。" />
+          </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs text-site-gray-lighter mb-1">開始日期</label>
