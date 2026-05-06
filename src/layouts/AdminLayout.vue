@@ -42,7 +42,7 @@ async function handleLogout() {
       <div class="h-14 flex items-center px-4 border-b border-[rgba(217,43,43,0.3)]">
         <div class="flex flex-col justify-center">
           <div class="flex items-baseline">
-            <span class="font-bebas text-2xl tracking-widest text-red leading-none">拉</span>
+            <span class="font-bebas text-2xl tracking-widest bg-red text-white leading-none px-0.5">拉</span>
             <span v-if="sidebarOpen" class="font-bebas text-2xl tracking-widest text-cream leading-none">麵道</span>
           </div>
           <p v-if="sidebarOpen" class="text-[10px] text-site-gray-lighter tracking-widest leading-none mt-0.5">管理系統</p>
