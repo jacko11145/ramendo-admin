@@ -34,8 +34,18 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
+
+  // Token 存在但 user 尚未載入（如 F5 刷新），先還原 session
+  if (auth.accessToken && !auth.user) {
+    try {
+      await auth.fetchMe()
+    } catch {
+      auth.clearAuth()
+    }
+  }
+
   if (to.meta.requiresAdmin && !auth.isAdmin) {
     if (!auth.isLoggedIn) return { name: 'login' }
     return { name: 'unauthorized' }
