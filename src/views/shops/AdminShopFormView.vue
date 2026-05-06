@@ -4,7 +4,48 @@ import { useRoute, useRouter } from 'vue-router'
 import { adminShopsApi } from '@/api/admin/shops'
 import { useUiStore } from '@/stores/ui.store'
 import AppSpinner from '@/components/common/AppSpinner.vue'
-import type { CreateUpdateShopDto, BusinessHours } from '@/types'
+import type { CreateUpdateShopDto, BusinessHours, MenuItem } from '@/types'
+
+// ─── Menu state ──────────────────────────────────────────────────────────────
+const MENU_CATEGORIES = ['麵類', '沾麵', '小菜', '配料', '飲料', '套餐', '其他']
+
+const menuItems = ref<MenuItem[]>([])
+const addingMenu = ref(false)
+const newMenuItem = ref({ name: '', price: '', category: '麵類', customCategory: '', description: '', isHighlight: false, isLimited: false })
+
+async function addMenuItem() {
+  if (!newMenuItem.value.name || !newMenuItem.value.price || !shopGuid.value) return
+  addingMenu.value = true
+  try {
+    await adminShopsApi.addMenuItem(shopGuid.value, {
+      name: newMenuItem.value.name,
+      price: newMenuItem.value.price,
+      description: newMenuItem.value.description || null,
+      category: newMenuItem.value.category === '其他' ? '其他' : newMenuItem.value.category,
+      customCategory: newMenuItem.value.category === '其他' ? newMenuItem.value.customCategory || null : null,
+      isHighlight: newMenuItem.value.isHighlight,
+      isLimited: newMenuItem.value.isLimited,
+      position: menuItems.value.length + 1,
+    })
+    const res = await adminShopsApi.getByGuid(shopGuid.value)
+    menuItems.value = res.data.data!.menuItems
+    newMenuItem.value = { name: '', price: '', category: '麵類', customCategory: '', description: '', isHighlight: false, isLimited: false }
+    ui.toast.success('菜單項目已新增')
+  } catch {
+    ui.toast.error('新增失敗')
+  } finally { addingMenu.value = false }
+}
+
+async function deleteMenuItem(itemId: string) {
+  if (!shopGuid.value) return
+  try {
+    await adminShopsApi.deleteMenuItem(shopGuid.value, itemId)
+    menuItems.value = menuItems.value.filter((m) => m.id !== itemId)
+    ui.toast.success('已刪除')
+  } catch {
+    ui.toast.error('刪除失敗')
+  }
+}
 
 // ─── Image state ─────────────────────────────────────────────────────────────
 const shopGuid = computed(() => route.params.guid as string)
@@ -128,6 +169,7 @@ onMounted(async () => {
     }
     currentCover.value = shop.coverImage
     currentGallery.value = [...shop.images]
+    menuItems.value = [...shop.menuItems]
   } finally { loading.value = false }
 })
 
@@ -164,7 +206,7 @@ function addNews() {
 
 function removeNews(i: number) { form.value.newsItems!.splice(i, 1) }
 
-const activeTab = ref<'basic' | 'hours' | 'news' | 'images'>('basic')
+const activeTab = ref<'basic' | 'hours' | 'news' | 'images' | 'menu'>('basic')
 </script>
 
 <template>
@@ -183,12 +225,12 @@ const activeTab = ref<'basic' | 'hours' | 'news' | 'images'>('basic')
       <!-- Tab Nav -->
       <div class="flex gap-1 border-b border-site-gray mb-6">
         <button
-          v-for="tab in [{ key: 'basic', label: '基本資訊' }, { key: 'hours', label: '營業時間' }, { key: 'news', label: '公告' }, { key: 'images', label: '圖片' }]"
+          v-for="tab in [{ key: 'basic', label: '基本資訊' }, { key: 'hours', label: '營業時間' }, { key: 'news', label: '公告' }, { key: 'images', label: '圖片' }, { key: 'menu', label: '菜單' }]"
           :key="tab.key"
           type="button"
           class="font-bebas text-base tracking-wider px-5 py-2 border-b-2 transition-colors"
           :class="activeTab === tab.key ? 'border-red text-cream' : 'border-transparent text-site-gray-lighter hover:text-cream'"
-          @click="activeTab = tab.key as 'basic' | 'hours' | 'news' | 'images'"
+          @click="activeTab = tab.key as 'basic' | 'hours' | 'news' | 'images' | 'menu'"
         >
           {{ tab.label }}
         </button>
@@ -320,6 +362,95 @@ const activeTab = ref<'basic' | 'hours' | 'news' | 'images'>('basic')
           </div>
         </div>
         <p v-if="!form.newsItems?.length" class="text-site-gray-lighter text-sm">尚無公告</p>
+      </div>
+
+      <!-- Menu Tab -->
+      <div v-if="activeTab === 'menu'" class="space-y-6 max-w-2xl">
+        <div v-if="!isEdit" class="text-site-gray-lighter text-sm">請先儲存店家後，再管理菜單。</div>
+        <template v-else>
+          <!-- Add new item form -->
+          <div class="card p-5 space-y-4">
+            <h3 class="font-bebas text-lg tracking-wider text-cream">新增菜單項目</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="col-span-2 sm:col-span-1">
+                <label class="block text-xs text-site-gray-lighter mb-1">品項名稱 *</label>
+                <input v-model="newMenuItem.name" class="input-field" placeholder="豚骨拉麵" />
+              </div>
+              <div>
+                <label class="block text-xs text-site-gray-lighter mb-1">價格 *</label>
+                <input v-model="newMenuItem.price" class="input-field" placeholder="180" />
+              </div>
+              <div>
+                <label class="block text-xs text-site-gray-lighter mb-1">類別</label>
+                <select v-model="newMenuItem.category" class="input-field">
+                  <option v-for="c in MENU_CATEGORIES" :key="c" :value="c">{{ c }}</option>
+                </select>
+              </div>
+              <div v-if="newMenuItem.category === '其他'">
+                <label class="block text-xs text-site-gray-lighter mb-1">自訂類別名稱</label>
+                <input v-model="newMenuItem.customCategory" class="input-field" placeholder="特製麵" />
+              </div>
+              <div class="col-span-2">
+                <label class="block text-xs text-site-gray-lighter mb-1">描述（選填）</label>
+                <input v-model="newMenuItem.description" class="input-field" placeholder="使用豬大骨熬製..." />
+              </div>
+              <div class="col-span-2 flex gap-6">
+                <label class="flex items-center gap-2 cursor-pointer text-sm">
+                  <input v-model="newMenuItem.isHighlight" type="checkbox" class="accent-red w-4 h-4" />
+                  推薦品項
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-sm">
+                  <input v-model="newMenuItem.isLimited" type="checkbox" class="accent-red w-4 h-4" />
+                  限定品項
+                </label>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn-primary text-sm"
+              :disabled="addingMenu || !newMenuItem.name || !newMenuItem.price"
+              @click="addMenuItem"
+            >
+              {{ addingMenu ? '新增中...' : '+ 新增' }}
+            </button>
+          </div>
+
+          <!-- Existing items list -->
+          <div>
+            <h3 class="font-bebas text-lg tracking-wider text-cream mb-3">
+              現有菜單
+              <span class="text-site-gray-lighter text-sm font-body ml-2">{{ menuItems.length }} 項</span>
+            </h3>
+            <p v-if="!menuItems.length" class="text-site-gray-lighter text-sm">尚無菜單項目</p>
+            <div class="space-y-2">
+              <div
+                v-for="item in menuItems"
+                :key="item.id"
+                class="card p-3 flex items-center gap-3"
+              >
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bebas text-base text-cream truncate">{{ item.name }}</span>
+                    <span v-if="item.isHighlight" class="text-xs bg-red/20 text-red-400 px-1.5 py-0.5 rounded">推薦</span>
+                    <span v-if="item.isLimited" class="text-xs bg-site-gray text-cream-dark px-1.5 py-0.5 rounded">限定</span>
+                  </div>
+                  <p class="text-xs text-site-gray-lighter">
+                    {{ item.category ?? '未分類' }}
+                    <span v-if="item.description"> · {{ item.description }}</span>
+                  </p>
+                </div>
+                <span class="font-mono text-cream-dark text-sm whitespace-nowrap">NT$ {{ item.price }}</span>
+                <button
+                  type="button"
+                  class="text-site-gray-lighter hover:text-red transition-colors text-xs shrink-0"
+                  @click="deleteMenuItem(item.id)"
+                >
+                  刪除
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
 
       <!-- Images Tab -->

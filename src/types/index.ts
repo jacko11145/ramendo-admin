@@ -90,7 +90,7 @@ export interface OptionGroup {
 export interface MenuItem {
   id: string
   name: string
-  price: number
+  price: string
   description: string | null
   category: string | null
   customCategory: string | null
