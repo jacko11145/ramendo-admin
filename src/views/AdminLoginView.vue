@@ -26,10 +26,10 @@ async function handleLogin() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white flex items-center justify-center px-4">
+  <div class="min-h-screen bg-ink flex items-center justify-center px-4">
     <div class="card w-full max-w-sm p-8">
       <div class="text-center mb-8">
-        <p class="font-bebas text-4xl tracking-widest text-cream"><span class="text-red">拉</span>麵道</p>
+        <p class="font-bebas text-4xl tracking-widest text-cream"><span class="bg-red text-white px-1">拉</span>麵道</p>
         <p class="text-xs font-mono text-site-gray-lighter mt-1">管理系統</p>
       </div>
 
