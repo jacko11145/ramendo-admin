@@ -40,7 +40,7 @@ export interface AuthTokens {
 export interface AdminUser {
   id: string
   email: string
-  name: string
+  name: string | null
   image: string | null
   role: UserRole
   experiencePoints: number
@@ -49,7 +49,6 @@ export interface AdminUser {
   vipExpiry: string | null
   isActive: boolean
   createdAt: string
-  shopCount: number
   reviewCount: number
 }
 
@@ -148,12 +147,12 @@ export interface CreateUpdateShopDto {
 
 export interface AdminReview {
   id: string
-  shopGuid: string
-  shopName: string
+  shopId: string
+  shopName: string | null
   userId: string
-  userName: string
+  userName: string | null
   rating: number
-  visitDate: string
+  visitDate: string | null
   comment: string | null
   createdAt: string
 }

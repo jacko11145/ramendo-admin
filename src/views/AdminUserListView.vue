@@ -92,7 +92,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
           <tbody>
             <tr v-for="u in data?.items" :key="u.id" class="hover:bg-ink/50 transition-colors">
               <td class="table-cell">
-                <p class="text-sm">{{ u.name }}</p>
+                <p class="text-sm">{{ u.name ?? '—' }}</p>
                 <p class="text-xs text-site-gray-lighter font-mono">{{ u.email }}</p>
               </td>
               <td class="table-cell">
@@ -131,7 +131,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
     </template>
 
     <!-- Adjust XP Modal -->
-    <AppModal v-if="editUser" :title="`調整 ${editUser.name} 的經驗值`" @close="editUser = null">
+    <AppModal v-if="editUser" :title="`調整 ${editUser.name ?? editUser.email} 的經驗值`" @close="editUser = null">
       <div class="space-y-4">
         <p class="text-sm text-site-gray-lighter">目前：{{ editUser.experiencePoints }} XP (Lv.{{ editUser.level }})</p>
         <div>
