@@ -98,7 +98,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
               <td class="table-cell">
                 <select
                   :value="u.role"
-                  class="bg-transparent text-sm border border-site-gray/50 rounded px-2 py-1 focus:outline-none"
+                  class="input-field text-sm py-1 px-2 w-32"
                   :class="ROLE_COLORS[u.role]"
                   @change="updateRole({ id: u.id, role: ($event.target as HTMLSelectElement).value as UserRole })"
                 >
