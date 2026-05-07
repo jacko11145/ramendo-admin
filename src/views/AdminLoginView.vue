@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import bgImage from '@/assets/delicious-ramen-dark-surface.jpg'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -26,8 +27,12 @@ async function handleLogin() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-ink flex items-center justify-center px-4">
-    <div class="card w-full max-w-sm p-8">
+  <div
+    class="min-h-screen flex items-center justify-center px-4 bg-cover bg-center bg-no-repeat relative"
+    :style="{ backgroundImage: `url(${bgImage})` }"
+  >
+    <div class="absolute inset-0 bg-ink/70" />
+    <div class="card w-full max-w-sm p-8 relative z-10">
       <div class="text-center mb-8">
         <p class="font-bebas text-4xl tracking-widest text-cream"><span class="bg-red text-white px-1">拉</span>麵道</p>
         <p class="text-xs font-mono text-site-gray-lighter mt-1">管理系統</p>
