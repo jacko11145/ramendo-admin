@@ -12,12 +12,27 @@ const MENU_CATEGORIES = ['麵類', '沾麵', '小菜', '配料', '飲料', '套�
 const menuItems = ref<MenuItem[]>([])
 const addingMenu = ref(false)
 const newMenuItem = ref({ name: '', price: '', category: '麵類', customCategory: '', description: '', isHighlight: false, isLimited: false })
+const newMenuItemImageFile = ref<File | null>(null)
+const newMenuItemImagePreview = ref<string | null>(null)
+
+function onNewMenuItemImageChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  newMenuItemImageFile.value = file
+  newMenuItemImagePreview.value = URL.createObjectURL(file)
+}
+
+function clearNewMenuItemImage() {
+  if (newMenuItemImagePreview.value) URL.revokeObjectURL(newMenuItemImagePreview.value)
+  newMenuItemImageFile.value = null
+  newMenuItemImagePreview.value = null
+}
 
 async function addMenuItem() {
   if (!newMenuItem.value.name || !newMenuItem.value.price || !shopGuid.value) return
   addingMenu.value = true
   try {
-    await adminShopsApi.addMenuItem(shopGuid.value, {
+    const res = await adminShopsApi.addMenuItem(shopGuid.value, {
       name: newMenuItem.value.name,
       price: newMenuItem.value.price,
       description: newMenuItem.value.description || null,
@@ -27,13 +42,43 @@ async function addMenuItem() {
       isLimited: newMenuItem.value.isLimited,
       position: menuItems.value.length + 1,
     })
-    const res = await adminShopsApi.getByGuid(shopGuid.value)
-    menuItems.value = res.data.data!.menuItems
+
+    const newItemId = res.data.data!
+    if (newMenuItemImageFile.value) {
+      await adminShopsApi.uploadMenuItemImage(shopGuid.value, newItemId, newMenuItemImageFile.value)
+    }
+
+    const shopRes = await adminShopsApi.getByGuid(shopGuid.value)
+    menuItems.value = shopRes.data.data!.menuItems
     newMenuItem.value = { name: '', price: '', category: '麵類', customCategory: '', description: '', isHighlight: false, isLimited: false }
+    clearNewMenuItemImage()
     ui.toast.success('菜單項目已新增')
   } catch {
     ui.toast.error('新增失敗')
   } finally { addingMenu.value = false }
+}
+
+async function deleteMenuItemImage(item: MenuItem) {
+  if (!shopGuid.value) return
+  try {
+    await adminShopsApi.deleteMenuItemImage(shopGuid.value, item.id)
+    item.image = null
+    ui.toast.success('圖片已刪除')
+  } catch {
+    ui.toast.error('刪除失敗')
+  }
+}
+
+async function uploadMenuItemImageForExisting(item: MenuItem, e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file || !shopGuid.value) return
+  try {
+    const res = await adminShopsApi.uploadMenuItemImage(shopGuid.value, item.id, file)
+    item.image = res.data.data ?? null
+    ui.toast.success('圖片已上傳')
+  } catch {
+    ui.toast.error('上傳失敗')
+  }
 }
 
 async function deleteMenuItem(itemId: string) {
@@ -371,7 +416,7 @@ const activeTab = ref<'basic' | 'hours' | 'news' | 'images' | 'menu'>('basic')
       </div>
 
       <!-- Menu Tab -->
-      <div v-if="activeTab === 'menu'" class="space-y-6 max-w-2xl">
+      <div v-if="activeTab === 'menu'" class="space-y-6 max-w-3xl">
         <div v-if="!isEdit" class="text-site-gray-lighter text-sm">請先儲存店家後，再管理菜單。</div>
         <template v-else>
           <!-- Add new item form -->
@@ -399,6 +444,27 @@ const activeTab = ref<'basic' | 'hours' | 'news' | 'images' | 'menu'>('basic')
               <div class="col-span-2">
                 <label class="block text-xs text-site-gray-lighter mb-1">描述（選填）</label>
                 <input v-model="newMenuItem.description" class="input-field" placeholder="使用豬大骨熬製..." />
+              </div>
+              <!-- Image picker -->
+              <div class="col-span-2">
+                <label class="block text-xs text-site-gray-lighter mb-2">品項圖片（選填）</label>
+                <div class="flex items-center gap-3">
+                  <div
+                    v-if="newMenuItemImagePreview"
+                    class="relative w-20 h-20 rounded-lg overflow-hidden shrink-0 group"
+                  >
+                    <img :src="newMenuItemImagePreview" class="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      class="absolute inset-0 bg-ink/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-lg"
+                      @click="clearNewMenuItemImage"
+                    >✕</button>
+                  </div>
+                  <label class="btn-outline text-xs cursor-pointer">
+                    {{ newMenuItemImagePreview ? '更換圖片' : '選擇圖片' }}
+                    <input type="file" accept="image/*" class="hidden" @change="onNewMenuItemImageChange" />
+                  </label>
+                </div>
               </div>
               <div class="col-span-2 flex gap-6">
                 <label class="flex items-center gap-2 cursor-pointer text-sm">
@@ -428,31 +494,53 @@ const activeTab = ref<'basic' | 'hours' | 'news' | 'images' | 'menu'>('basic')
               <span class="text-site-gray-lighter text-sm font-body ml-2">{{ menuItems.length }} 項</span>
             </h3>
             <p v-if="!menuItems.length" class="text-site-gray-lighter text-sm">尚無菜單項目</p>
-            <div class="space-y-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div
                 v-for="item in menuItems"
                 :key="item.id"
-                class="card p-3 flex items-center gap-3"
+                class="card p-3 flex gap-3"
               >
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="font-bebas text-base text-cream truncate">{{ item.name }}</span>
-                    <span v-if="item.isHighlight" class="text-xs bg-red/20 text-red-400 px-1.5 py-0.5 rounded">推薦</span>
-                    <span v-if="item.isLimited" class="text-xs bg-site-gray text-cream-dark px-1.5 py-0.5 rounded">限定</span>
+                <!-- Item image -->
+                <div class="w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-site-gray relative group">
+                  <img v-if="item.image" :src="item.image" class="w-full h-full object-cover" />
+                  <div v-else class="w-full h-full flex items-center justify-center text-site-gray-lighter text-xs text-center px-1">無圖片</div>
+                  <!-- hover actions -->
+                  <div class="absolute inset-0 bg-ink/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
+                    <label class="text-xs text-cream cursor-pointer hover:text-white">
+                      上傳
+                      <input type="file" accept="image/*" class="hidden" @change="(e) => uploadMenuItemImageForExisting(item, e)" />
+                    </label>
+                    <button
+                      v-if="item.image"
+                      type="button"
+                      class="text-xs text-red-400 hover:text-red"
+                      @click="deleteMenuItemImage(item)"
+                    >刪除</button>
                   </div>
-                  <p class="text-xs text-site-gray-lighter">
-                    {{ item.category ?? '未分類' }}
-                    <span v-if="item.description"> · {{ item.description }}</span>
-                  </p>
                 </div>
-                <span class="font-mono text-cream-dark text-sm whitespace-nowrap">NT$ {{ item.price }}</span>
-                <button
-                  type="button"
-                  class="text-site-gray-lighter hover:text-red transition-colors text-xs shrink-0"
-                  @click="deleteMenuItem(item.id)"
-                >
-                  刪除
-                </button>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
+                      <span class="font-bebas text-base text-cream leading-tight">{{ item.name }}</span>
+                      <span v-if="item.isHighlight" class="text-xs bg-red/20 text-red-400 px-1.5 py-0.5 rounded">推薦</span>
+                      <span v-if="item.isLimited" class="text-xs bg-site-gray text-cream-dark px-1.5 py-0.5 rounded">限定</span>
+                    </div>
+                    <p class="text-xs text-site-gray-lighter">{{ item.category ?? '未分類' }}</p>
+                    <p v-if="item.description" class="text-xs text-site-gray-lighter truncate">{{ item.description }}</p>
+                  </div>
+                  <div class="flex items-center justify-between mt-1">
+                    <span class="font-mono text-cream-dark text-sm">NT$ {{ item.price }}</span>
+                    <button
+                      type="button"
+                      class="text-site-gray-lighter hover:text-red transition-colors text-xs"
+                      @click="deleteMenuItem(item.id)"
+                    >
+                      刪除
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -39,8 +39,20 @@ export const adminShopsApi = {
   deleteGalleryImage: (guid: string, url: string) =>
     apiClient.delete<ApiResponse<string[]>>(`/api/admin/shops/${guid}/gallery`, { data: { url } }),
 
-  addMenuItem: (guid: string, data: Omit<MenuItem, 'id' | 'optionGroups'>) =>
+  addMenuItem: (guid: string, data: Omit<MenuItem, 'id' | 'image' | 'optionGroups'>) =>
     apiClient.post<ApiResponse<string>>(`/api/admin/shops/${guid}/menu`, data),
+
+  uploadMenuItemImage: (guid: string, itemId: string, file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return apiClient.post<ApiResponse<string>>(
+      `/api/admin/shops/${guid}/menu/${itemId}/image`, form,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    )
+  },
+
+  deleteMenuItemImage: (guid: string, itemId: string) =>
+    apiClient.delete<ApiResponse<null>>(`/api/admin/shops/${guid}/menu/${itemId}/image`),
 
   reorderMenuItems: (guid: string, order: Array<{ id: string; position: number }>) =>
     apiClient.put<ApiResponse<null>>(`/api/admin/shops/${guid}/menu/reorder`, { order }),

@@ -94,6 +94,7 @@ export interface MenuItem {
   description: string | null
   category: string | null
   customCategory: string | null
+  image: string | null
   isHighlight: boolean
   isLimited: boolean
   position: number
